@@ -1,5 +1,35 @@
 <img src="https://user-images.githubusercontent.com/26399680/47980314-0e3f1700-e102-11e8-8857-e3436ecc8beb.png" alt="logo" width="140" height="140" align="right">
 
+# Mac自签证书
+签完以后，替换三个文件即可:
+
+ca.crt
+server.crt
+server.key
+补充一句，为了防止短路，最好先把服务停了再替换证书，我们修电脑的时候，一般都要先关机卸电池。
+
+不过，我手头没有苹果设备，得明天去了公司以后借设计妹子的手机和电脑试试。
+
+自签方法
+
+```
+#  生成 CA 私钥
+openssl genrsa -out ca.key 2048
+
+# 生成 CA 证书 ("YOURNAME" 处填上你自己的名字)
+openssl req -x509 -new -nodes -key ca.key -sha256 -days 1825 -out ca.crt -subj "/C=CN/CN=UnblockNeteaseMusic Root CA/O=MusicFree"
+
+# 生成服务器私钥
+openssl genrsa -out server.key 2048
+
+# 生成证书签发请求
+openssl req -new -sha256 -key server.key -out server.csr -subj "/C=CN/L=Hangzhou/O=NetEase (Hangzhou) Network Co., Ltd/OU=IT Dept./CN=*.music.163.com"
+
+# 使用 CA 签发服务器证书
+openssl x509 -req -extfile <(printf "extendedKeyUsage=serverAuth\nsubjectAltName=DNS:music.163.com,DNS:*.music.163.com") -sha256 -days 365 -in server.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out server.crt
+```
+
+
 # UnblockNeteaseMusic
 
 解锁网易云音乐客户端变灰歌曲
